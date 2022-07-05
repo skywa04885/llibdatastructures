@@ -12,16 +12,29 @@
     WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 */
 
+import { EventEmitter } from "stream";
+
 export interface LinkedListNode<T> {
   data: T;
   next: LinkedListNode<T> | null;
   prev: LinkedListNode<T> | null;
 }
 
-export class LinkedList<T> {
-  protected _tail: LinkedListNode<T> | null = null;
-  protected _head: LinkedListNode<T> | null = null;
-  protected _size: number = 0;
+export class LinkedList<T> extends EventEmitter {
+  protected _tail: LinkedListNode<T> | null;
+  protected _head: LinkedListNode<T> | null;
+  protected _size: number;
+
+  /**
+   * Constructs a new linked list.
+   */
+  public constructor() {
+    super();
+
+    this._tail = null;
+    this._head = null;
+    this._size = 0;
+  }
 
   /**
    * Gets the size of the linked list.
@@ -47,6 +60,9 @@ export class LinkedList<T> {
       next: null,
       prev: null,
     };
+
+    // Sends the event indicating a new item has been pushed.
+    this.emit("pushed", this._size === 0, node);
 
     // If the size is 0 at start, make the node the head
     //  and the tail, and return.
@@ -83,6 +99,9 @@ export class LinkedList<T> {
       this._head = new_head;
     }
 
+    // Sends the event indicating a element has been popped.
+    this.emit("popped", this._size === 0, node);
+
     // Returns the popped data.
     return node.data;
   }
@@ -109,6 +128,9 @@ export class LinkedList<T> {
       next: null,
       prev: null,
     };
+
+    // Sends the event indicating a new item has been pushed.
+    this.emit("pushed", this._size === 0, node);
 
     // If the size is 0 at start, make the node the head
     //  and the tail, and return.
@@ -144,6 +166,9 @@ export class LinkedList<T> {
       new_tail.prev = null;
       this._tail = new_tail;
     }
+
+    // Sends the event indicating a element has been popped.
+    this.emit("popped", this._size === 0, node);
 
     // Returns the popped data.
     return node.data;
@@ -187,6 +212,9 @@ export class LinkedList<T> {
     if (!node) {
       throw new Error("Needle not present in linked list.");
     }
+
+    // Sends the event indicating a element has been removed.
+    this.emit("removed", this._size === 0, node);
 
     return node.data;
   }
