@@ -12,15 +12,29 @@
     WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 */
 
+import { EventEmitter } from "stream";
+
 export interface QueueNode<T> {
   data: T;
   next: QueueNode<T> | null;
 }
 
-export class Queue<T> {
-  protected _head: QueueNode<T> | null = null;
-  protected _tail: QueueNode<T> | null = null;
-  protected _size: number = 0;
+export class Queue<T> extends EventEmitter  {
+  protected _head: QueueNode<T> | null;
+  protected _tail: QueueNode<T> | null;
+  protected _size: number;
+
+  /**
+   * Constructs a new queue.
+   */
+  public constructor() {
+    super();
+
+    this._head = null;
+    this._tail = null;
+    this._size = 0;
+  }
+  
 
   /**
    * Getter for the size.
@@ -44,7 +58,10 @@ export class Queue<T> {
     // Constructs the queue node.
     const node: QueueNode<T> = { data, next: null };
 
-    // If size is zero, make it the head and tail
+    // Emits the event.
+    this.emit('enqueued', this.size === 0, node); // this.size === 0, will be true if it's the first, hence 'first'.
+
+    // If size is zero, make it the head and tail.
     if (this._size++ === 0) {
       this._head = this._tail = node;
       return;
@@ -52,8 +69,7 @@ export class Queue<T> {
 
     // Make it the next of the head, and makes it the head.
     (this._head as QueueNode<T>).next = node;
-    this._head = node;
-  }
+    this._head = node;  }
 
   /**
    * Prints the queue.
@@ -81,6 +97,9 @@ export class Queue<T> {
     const node: QueueNode<T> = this._tail as QueueNode<T>;
     this._tail = (this._tail as QueueNode<T>).next;
     --this._size;
+
+    // Emits an event indicating the dequeue of an element.
+    this.emit('dequeue', this.size === 0, node); // this.size === 0, will be true if it's the last, hence 'last'.
 
     // Returns the data.
     return node.data;
